@@ -1,0 +1,14 @@
+
+---
+galaxy_info:
+  author: Cisco CX (DAFE Tool)
+  description: Comprehensive Ansible role to model and deploy Cisco ACI fabrics
+  company: Cisco
+  license: Cisco Sample Code License v1.1 (https://developer.cisco.com/site/license/cisco-sample-code-license/)
+  min_ansible_version: 2.9
+  platforms:
+  - name: All
+    versions:
+    - all
+  galaxy_tags: []
+dependencies: []

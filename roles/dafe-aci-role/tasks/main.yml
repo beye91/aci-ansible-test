@@ -1,0 +1,21 @@
+---
+- name: Pre-execution checks
+  assert:
+    that:
+      - apic_host is defined
+      - apic_username is defined
+      - apic_password is defined
+      - apic_password is defined or apic_private_key is defined
+      - apic_validate_certs is defined
+      - apic_use_proxy is defined
+      - apic_output_level is defined
+      - dafe_aci_data is defined
+    fail_msg: "Please ensure that all required variables have been defined"
+    quiet: true
+
+- name: ACI tenant policy tasks
+  block:
+    - import_tasks: tenant.yml
+  when:
+    - dafe_aci_model.tenant is defined
+

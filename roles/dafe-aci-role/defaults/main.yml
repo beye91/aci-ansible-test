@@ -1,0 +1,10 @@
+
+---
+# Loop failure handling
+loop_retries: 3
+retry_delay: 3
+
+# Defaults for APIC
+apic_validate_certs: no
+apic_use_proxy: no
+apic_output_level: normal

@@ -1,0 +1,45 @@
++----------------------------------------+
++- DAFE Execution started via WebUI / API
++--  Referrer URL: https://dafe-ui.cisco.com/
++----------------------------------------+
+Opening excel workbook /tmp/aci_build_input_data.xlsx
++---------- Creating Build tasks ----------+
++ Tenant
++ VRF
++ Bridge Domain
++ Bridge Domain Subnet
++ Application Profile
++ EPG
++------------------------------------------+
++---------- Loading Input Data ----------+
++--- Importing worksheet tenant
++--- Importing worksheet vrf
++--- Importing worksheet bridge_domain
++--- Importing worksheet bd_subnet
++--- Importing worksheet application_profile
++--- Importing worksheet end_point_group
++------------------------------------------+
++---------- Input Data Validation ----------+
++- Validating tenant for template fvTenant.xml
++- Validating vrf for template fvCtx.xml
++- Validating bridge_domain for template fvBD.xml
++- Validating bd_subnet for template fvSubnet.xml
++- Validating application_profile for template fvAP.xml
++- Validating end_point_group for template fvAEPg.xml
++------------------------------------------+
++---------- Creating Ansible Data File ----------+
++---------- Creating Ansible Playbook ----------------------+
++---------- Creating Ansible Role ----------------------+
++- Generating tasks for Tenant
++- Generating tasks for VRF
++- Generating tasks for Bridge Domain
++- Generating tasks for Bridge Domain Subnet
++- Generating tasks for Application Profile
++- Generating tasks for EPG
++---------- Creating Ansible hosts file ---------------------+
++---------- Creating Ansible usage information ---------------------+
++------------------------------------------------------+
++-------- Configuration Generation Statistics ---------+
++------------------------------------------------------+
++- 6 objects created in total
++- Failure during submission of usage statistics (can safely be ignorred)

@@ -1,0 +1,274 @@
+---
+- name: tenant Configuration
+  vars:
+    aci_login: &aci_login
+      host: "{{ apic_host }}"
+      username: "{{ apic_username }}"
+      password: "{{ apic_password|default(omit) }}"
+      private_key: "{{ apic_private_key|default(omit) }}"
+      validate_certs: "{{ apic_validate_certs }}"
+      use_proxy: "{{ apic_use_proxy }}"
+      output_level: "{{ apic_output_level }}"
+
+  block:
+
+  - name: Tenant Configuration
+    cisco.aci.aci_tenant:
+      <<: *aci_login
+      tenant: "{{ item.name }}"
+      description: "{{ item.description }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+    with_items: "{{dafe_aci_data.tenant.tenant}}"
+    when:
+      - dafe_aci_data.tenant.tenant is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Tenant Supplemental Configuration
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/mo/uni.xml
+      method: post
+      content: |
+        <polUni>
+          <fvTenant name="{{ item.name }}" status="{{ item.status if item.status == 'deleted' else '' }}">>
+            {% if item.security_domain != "" %}
+            <aaaDomainRef name="{{ item.security_domain }}"/>
+            {% endif %}
+          </fvTenant>
+        </polUni>
+    with_items: "{{dafe_aci_data.tenant.tenant}}"
+    when:
+      - dafe_aci_data.tenant.tenant is defined
+      - item.security_domain != ''
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: VRF Configuration
+    cisco.aci.aci_vrf:
+      <<: *aci_login
+      description: "{{ item.description }}"
+      policy_control_direction: "{{ item.policy_enforcement_direction if item.policy_enforcement_direction is defined and item.policy_enforcement_direction != '' else 'ingress' }}"
+      policy_control_preference: "{{ item.policy_enforcement if item.policy_enforcement is defined and item.policy_enforcement != '' else 'enforced' }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+      tenant: "{{ item.tenant }}"
+      vrf: "{{ item.name }}"
+    with_items: "{{dafe_aci_data.tenant.vrf}}"
+    when:
+      - dafe_aci_data.tenant.vrf is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: VRF Supplemental Configuration
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/mo/uni.xml
+      method: post
+      content: |
+        <polUni>
+          <fvTenant name="{{ item.tenant }}" status="modified">
+            <fvCtx name="{{ item.name }}" status="{{ item.status if item.status == 'deleted' else '' }}">
+              <fvRsBgpCtxPol tnBgpCtxPolName="{{ item.bgp_timers }}"/>
+              <fvRsCtxToExtRouteTagPol tnL3extRouteTagPolName="{{ item.route_tag_policy }}"/>
+              <fvRsOspfCtxPol tnOspfCtxPolName="{{ item.ospf_timers }}"/>
+              {% if item.monitoring_policy is defined and item.monitoring_policy != "" %}
+                    <fvRsCtxMonPol tnMonEPGPolName="{{ item.monitoring_policy }}"/>
+                  {% endif %}
+              <fvRsCtxToEpRet tnFvEpRetPolName="{{ item.endpoint_retention_policy }}"/>
+              {% if item.dns_label is defined and item.dns_label != ""  %}
+                    <dnsLbl name="{{ item.dns_label }}" tag="yellow-green"/>
+                  {% endif %}
+              {% if item.golf_opflex_mode == "yes" %}
+                    <l3extGlobalCtxName name="{{ item.golf_vrf_name }}"/>
+                  {% endif %}
+              {% if item.bgp_context_ipv4 and item.bgp_context_ipv4 != "" %}
+                <fvRsCtxToBgpCtxAfPol af="ipv4-ucast" tnBgpCtxAfPolName="{{ item.bgp_context_ipv4 }}"/>
+              {% endif %}
+              {% if item.bgp_context_ipv6 is defined and item.bgp_context_ipv6 != "" %}
+                <fvRsCtxToBgpCtxAfPol af="ipv6-ucast" tnBgpCtxAfPolName="{{ item.bgp_context_ipv6 }}"/>
+              {% endif %}
+            </fvCtx>
+          </fvTenant>
+        </polUni>
+    with_items: "{{dafe_aci_data.tenant.vrf}}"
+    when:
+      - dafe_aci_data.tenant.vrf is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Bridge Domain Configuration
+    cisco.aci.aci_bd:
+      <<: *aci_login
+      arp_flooding: "{{ item.arp_flood }}"
+      bd: "{{ item.name }}"
+      description: "{{ item.description }}"
+      enable_multicast: "{{ item.enablePim if item.enablePim is defined and item.enablePim != '' else omit}}"
+      enable_routing: "{{ item.unicast_routing }}"
+      endpoint_move_detect: "{{ item.endpoint_move_detect_mode if item.endpoint_move_detect_mode == 'garp' else omit }}"
+      endpoint_retention_policy: "{{ item.endpoint_retention_policy if item.endpoint_retention_policy is defined and item.endpoint_retention_policy != '' else omit }}"
+      igmp_snoop_policy: "{{ item.igmp_snoop_policy if item.igmp_snoop_policy is defined and item.igmp_snoop_policy != '' else omit }}"
+      ip_learning: "{{ item.endpoint_data_plane_learning if item.endpoint_data_plane_learning is defined and item.endpoint_data_plane_learning != '' else omit }}"
+      l2_unknown_unicast: "{{ item.l2_unknown_unicast }}"
+      l3_unknown_multicast: "{{ item.l3_unknown_multicast }}"
+      limit_ip_learn: "{{ item.limit_ip_learning_to_subnet if item.endpoint_data_plane_learning is defined and item.endpoint_data_plane_learning != '' else omit }}"
+      multi_dest: "{{ item.multi_dest_flood }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+      tenant: "{{ item.tenant }}"
+      vrf: "{{ item.vrf }}"
+      name_alias: "{{ item.name_alias if item.name_alias is defined and item.name_alias != '' else omit }}"
+    with_items: "{{dafe_aci_data.tenant.bridge_domain}}"
+    when:
+      - dafe_aci_data.tenant.bridge_domain is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Bridge Domain Supplemental Configuration
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/mo/uni.xml
+      method: post
+      content: |
+        <polUni>
+          <fvTenant name="{{ item.tenant }}" status="modified">
+            <fvBD name="{{ item.name }}" status="{{ item.status if item.status == 'deleted' else '' }}">
+              {% if item.is_bd_legacy == "yes" %}
+              <fvAccP descr="" encap="vlan-{{ item.legacy_bd_vlan }}" />
+              {% endif %}
+              {% if item.igmpInterfacePolicy != "" %}
+              <igmpIfP annotation="" descr="" name="igmpIfP" nameAlias="">
+            		<igmpRsIfPol annotation="" tDn="uni/tn-{{ item.tenant }}/igmpIfPol-{{ item.igmpInterfacePolicy }}"/>
+              </igmpIfP>
+              {% endif %}
+              {% if item.route_control_profile and item.route_control_profile != "" %}
+              <fvRsBDToProfile tnL3extOutName="{{ item.l3out_for_route_profile }}" tnRtctrlProfileName="{{ item.route_control_profile }}"/>
+              {% endif %}
+            </fvBD>
+          </fvTenant>
+        </polUni>
+    with_items: "{{dafe_aci_data.tenant.bridge_domain}}"
+    when:
+      - dafe_aci_data.tenant.bridge_domain is defined
+      - item.is_bd_legacy == 'yes' or item.igmpInterfacePolicy != '' or item.route_control_profile != ''
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Bridge Domain Subnet Configuration  
+    cisco.aci.aci_bd_subnet:
+      <<: *aci_login
+      bd: "{{ item.bridge_domain }}"
+      description: "{{ item.description }}"
+      enable_vip: "{{ item.is_virtual_ip if item.is_virtual_ip is defined and item.is_virtual_ip != '' else omit }}"
+      gateway: "{{ item.bd_subnet.split('/')[0] }}"
+      mask: "{{ item.bd_subnet.split('/')[1] }}"
+      nd_prefix_policy: "{{ item.ndRAprefixPolicy if item.ndRAprefixPolicy is defined and item.ndRAprefixPolicy != '' else omit }}"
+      preferred: "{{ item.is_primary_address if item.is_primary_address is defined and item.is_primary_address != '' else omit }}"
+      scope: "{{ item.subnet_scope }}"
+      subnet_control: "{{ item.subnet_control if item.subnet_control is defined and item.subnet_control != '' else 'unspecified' }}"
+      tenant: "{{ item.tenant }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+    with_items: "{{dafe_aci_data.tenant.bd_subnet}}"
+    when:
+      - dafe_aci_data.tenant.bd_subnet is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Application Profile Configuration
+    cisco.aci.aci_ap:
+      <<: *aci_login
+      tenant: "{{ item.tenant }}"
+      ap: "{{ item.name }}"
+      description: "{{ item.description }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+    with_items: "{{dafe_aci_data.tenant.application_profile}}"
+    when:
+      - dafe_aci_data.tenant.application_profile is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: Application Profile Supplemental Configuration
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/mo/uni.xml
+      method: post
+      content: |
+        <polUni>
+          <fvTenant name="{{ item.tenant }}" status="modified">
+            <fvAp name="{{ item.name }}" prio="{{ item.qos_class if item.qos_class is defined and item.qos_class != '' else omit }}" status="{{ item.status if item.status == 'deleted' else '' }}"/>
+          </fvTenant>
+        </polUni>
+    with_items: "{{dafe_aci_data.tenant.application_profile}}"
+    when:
+      - dafe_aci_data.tenant.application_profile is defined
+      - item.qos_class is defined
+      - item.qos_class != ''
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: EPG Configuration
+    cisco.aci.aci_epg:
+      <<: *aci_login
+      tenant: "{{ item.tenant }}"
+      ap: "{{ item.app_profile }}"
+      epg: "{{ item.name }}"
+      bd: "{{ item.bridge_domain }}"
+      priority: "{{ item.qos_class | default('unspecified',True) }}"
+      intra_epg_isolation: "{{ item.intra_epg_isolation if item.intra_epg_isolation != '' else omit }}"
+      description: "{{ item.description }}"
+      preferred_group: "{{ 'yes' if item.prefGrMemb == 'include' else 'no' }}"
+      name_alias: "{{ item.name_alias if item.name_alias is defined and item.name_alias != '' else omit }}"
+      state: "{{ 'absent' if item.status == 'deleted' else 'present' }}"
+    with_items: "{{dafe_aci_data.tenant.end_point_group}}"
+    when:
+      - dafe_aci_data.tenant.end_point_group is defined
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+
+  - name: EPG Supplemental Configuration
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/mo/uni.xml
+      method: post
+      content: |
+        <polUni>
+          <fvTenant name="{{ item.tenant }}" status="modified">
+            <fvAp name="{{ item.app_profile }}" status="modified">
+              <fvAEPg name="{{ item.name }}" floodOnEncap="{{ item.floodOnEncap if item.floodOnEncap != '' else 'disabled' }}" status="{{ item.status if item.status == 'deleted' else '' }}">
+                {% if item.dataPlanePolicer != "" %}
+                <fvRsDppPol tnQosDppPolName="{{ item.dataPlanePolicer }}"/>
+                {% endif %}
+                {% if item.custom_qos_pol != "" %}
+                <fvRsCustQosPol tnQosCustomPolName="{{ item.custom_qos_pol }}" />
+                {% endif %}
+              </fvAEPg>
+            </fvAp>
+          </fvTenant>
+        </polUni>
+    with_items: "{{dafe_aci_data.tenant.end_point_group}}"
+    when:
+      - dafe_aci_data.tenant.end_point_group is defined
+      - item.dataPlanePolicer != '' or item.custom_qos_pol != ''
+    register: result
+    retries: "{{ loop_retries }}"
+    delay: "{{ retry_delay }}"
+    until: result is not failed
+

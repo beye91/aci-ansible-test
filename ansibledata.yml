@@ -1,0 +1,83 @@
+---
+dafe_aci_model:
+  tenant:
+    application_profile:
+    - description: ''
+      name: TEST_AP1
+      qos_class: ''
+      status: ''
+      tenant: TEST_TENANT1
+    bd_subnet:
+    - bd_subnet: 10.0.0.1/24
+      bridge_domain: TEST_BD1
+      description: ''
+      is_primary_address: ''
+      is_virtual_ip: ''
+      ndRAprefixPolicy: ''
+      status: ''
+      subnet_control: ''
+      subnet_scope: private
+      tenant: TEST_TENANT1
+    bridge_domain:
+    - arp_flood: 'yes'
+      description: TEST
+      enablePim: 'no'
+      endpoint_data_plane_learning: 'yes'
+      endpoint_move_detect_mode: garp
+      endpoint_retention _policy: ''
+      igmpInterfacePolicy: ''
+      igmp_snoop_policy: ''
+      is_bd_legacy: ''
+      l2_unknown_unicast: flood
+      l3_unknown_multicast: flood
+      l3out_for_route_control: ''
+      legacy_bd_vlan: ''
+      limit_ip_learning_to_subnet: 'yes'
+      multi_dest_flood: bd-flood
+      name: TEST_BD1
+      name_alias: ''
+      route_control_profile: ''
+      status: ''
+      tenant: TEST_TENANT1
+      unicast_routing: 'yes'
+      vrf: TEST_VRF1
+    end_point_group:
+    - app_profile: TEST_AP1
+      bridge_domain: TEST_BD1
+      custom_qos_pol: ''
+      dataPlanePolicer: ''
+      description: TEST
+      floodOnEncap: ''
+      intra_epg_isolation: ''
+      name: TEST_EPG1
+      nameAlias: ''
+      name_alias: ''
+      prefGrMemb: ''
+      qos_class: ''
+      status: ''
+      tenant: TEST_TENANT1
+    tenant:
+    - description: ''
+      name: TEST_TENANT1
+      name_alias: ''
+      security_domain: ''
+      status: ''
+    vrf:
+    - bgp_context_ipv4: ''
+      bgp_context_ipv6: ''
+      bgp_timers: ''
+      description: ''
+      dns_label: ''
+      endpoint_retention_policy: ''
+      golf_opflex_mode: ''
+      golf_vrf_name: ''
+      monitoring_policy: ''
+      name: TEST_VRF1
+      ospf_context_af: ''
+      ospf_timers: ''
+      policy_enforcement: ''
+      policy_enforcement_direction: ''
+      route_tag_policy: ''
+      status: ''
+      tenant: TEST_TENANT1
+      vzAnyPrefGroup: ''

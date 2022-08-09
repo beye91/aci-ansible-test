@@ -1,0 +1,13 @@
+---
+all:
+  hosts:
+    APIC:
+      apic_host: ''
+      apic_username: ''
+      apic_password: '' # only if using password based authentication
+      # apic_private_key: 'ansible.key' # only if using certificate based authentication
+      apic_validate_certs: 'no'
+      apic_use_proxy: 'no'
+      apic_output_level: 'normal'
+      ansible_connection: 'local'
+      aci_variable_filename: 'ansibledata.yml'

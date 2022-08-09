@@ -1,0 +1,25 @@
+
+---
+- name: ACI Playbook and Roles automatically generated from DAFE build tasks
+  hosts: APIC
+  gather_facts: no
+  vars_files:
+   - "{{ aci_variable_filename }}"
+  tasks:
+  - name: Pre-execution checks
+    assert:
+      that:
+        - apic_host is defined
+        - apic_username is defined
+        - apic_password is defined
+        - apic_password is defined or apic_private_key is defined
+        - dafe_aci_model is defined
+      fail_msg: "Please ensure that all required variables have been defined"
+      quiet: true
+
+  - name: Deploy ACI configuration
+    vars:
+      dafe_aci_data: "{{ dafe_aci_model }}"
+    include_role:
+      name: dafe-aci-role
+    when: dafe_aci_model is defined

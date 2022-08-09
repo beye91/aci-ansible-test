@@ -1,0 +1,17 @@
+
+The Ansible playbook and role in this directory has been auto-generated using Cisco CX DAFE tool. The use of this
+playbook and role are licensed under the Cisco Sample Code License v1.1 (https://developer.cisco.com/site/license/cisco-sample-code-license/).
+
+For information about the variable structure needed by the Ansible role, please reach out to your local Cisco CX engineer.
+
+The role requires Ansible 2.9 or later, and depends on the modules from the cisco.aci Ansible Galaxy collection (minimum version 0.0.7).
+
+The cisco.aci Ansible Galacy collection can be installed using one of the following methods:
+
+1. To install the collection in the default location, execute the following command:
+    ansible-galaxy collection install -r requirements.yml
+
+2. To install the collection inside your project, use the following command from your project's root directory:
+    ansible-galaxy collection install -r requirements.yml -p collections
+
+More information about the cisco.aci Ansible Galaxy collection can be found here: https://galaxy.ansible.com/cisco/aci
