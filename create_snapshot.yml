@@ -1,0 +1,24 @@
+---
+- name: ACI Playbook and Roles automatically generated from DAFE build tasks
+  hosts: APIC
+  gather_facts: no
+
+  vars:
+    aci_login: &aci_login
+      host: "{{ apic_host }}"
+      username: "{{ apic_username }}"
+      password: "{{ apic_password|default(omit) }}"
+      private_key: "{{ apic_private_key|default(omit) }}"
+      validate_certs: "{{ apic_validate_certs }}"
+      use_proxy: "{{ apic_use_proxy }}"
+      output_level: "{{ apic_output_level }}"
+
+
+  - name: Create snapshot 
+    cisco.aci.aci_config_snapshot:
+      <<: *aci_login
+      state: present
+      export_policy: config_backup
+      max_count: 10
+      description: Backups taken before new configs are applied.
+    delegate_to: localhost

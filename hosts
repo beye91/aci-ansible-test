@@ -2,9 +2,9 @@
 all:
   hosts:
     APIC:
-      apic_host: ''
-      apic_username: ''
-      apic_password: '' # only if using password based authentication
+      apic_host: '198.18.134.11'
+      apic_username: 'admin'
+      apic_password: 'C1sco12345' # only if using password based authentication
       # apic_private_key: 'ansible.key' # only if using certificate based authentication
       apic_validate_certs: 'no'
       apic_use_proxy: 'no'
